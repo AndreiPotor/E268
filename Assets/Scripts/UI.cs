@@ -35,7 +35,7 @@ public class UI : MonoBehaviour
 
         // getting the minimap data
         minimap = GameObject.Find("Minimap").GetComponent<RawImage>();
-        mapSize = GameObject.Find("Map").GetComponent<Map>().size + 2;
+        mapSize = GameObject.Find("Map").GetComponent<Map>().mapSize + 2;
 
         texture = new Texture2D(mapSize, mapSize, TextureFormat.ARGB32, false);
         texture.filterMode = FilterMode.Point;

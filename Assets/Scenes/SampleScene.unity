@@ -3299,7 +3299,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e3897ad1c602c34ca011c045c67a87e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: 128
   playerObject: {fileID: 2146214404}
   enemyObject: {fileID: 1642318684}
   wallTile: {fileID: 5031758176296656020, guid: 3223d31572e91684a90cdf0711ffb2f4, type: 3}
@@ -3310,9 +3309,7 @@ MonoBehaviour:
   doorClosedTile: {fileID: 5031758176296656020, guid: 95f93e71694c1394091a44745689cb7b, type: 3}
   doorOpenTile: {fileID: 5031758176296656020, guid: 26a1edf55718b2643a3dfd457fd73063, type: 3}
   floorArrowTile: {fileID: 6974251954616811750, guid: b47054d83f31d3144b395c570d9bf4ee, type: 3}
-  corridorSizes: 09000000050000000300000001000000
-  percentCorridors: 0.03
-  doorRarity: 0.04
+  mapSize: 64
 --- !u!4 &1903771723
 Transform:
   m_ObjectHideFlags: 0
@@ -4055,7 +4052,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewCone: {fileID: 1932651643}
   shooting: {fileID: 2146214405}
-  speed: 40
+  speed: 200
   speedModifier: 1
   health: 5
   healthModifier: 1
@@ -4069,7 +4066,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2146214404}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 0
