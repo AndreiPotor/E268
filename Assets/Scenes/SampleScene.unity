@@ -3306,10 +3306,17 @@ MonoBehaviour:
   wallCornerTile: {fileID: 5031758176296656020, guid: 32b63a4339c78084289a949cf4d3aff5, type: 3}
   wallCornerBiTile: {fileID: 5031758176296656020, guid: cd877e27c6aed2442b4b298b17ccddfe, type: 3}
   wallCornerAllTile: {fileID: 5031758176296656020, guid: 46ebf853ae0616946ab658fd09676c58, type: 3}
+  wallEndAll: {fileID: 5031758176296656020, guid: 8f19e45dac890164f9c7306c7061f2f5, type: 3}
   doorClosedTile: {fileID: 5031758176296656020, guid: 95f93e71694c1394091a44745689cb7b, type: 3}
   doorOpenTile: {fileID: 5031758176296656020, guid: 26a1edf55718b2643a3dfd457fd73063, type: 3}
   floorArrowTile: {fileID: 6974251954616811750, guid: b47054d83f31d3144b395c570d9bf4ee, type: 3}
-  mapSize: 64
+  minRoomUsableLength: 5
+  wallsPerDoor: 3
+  doorMinDistance: 9
+  doorSymmetryChance: 1
+  roomToCorridorLengths: 1e0000002800000032000000
+  mapSize: 128
+  roomDivisions: 100
 --- !u!4 &1903771723
 Transform:
   m_ObjectHideFlags: 0

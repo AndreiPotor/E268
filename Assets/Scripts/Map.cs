@@ -23,19 +23,20 @@ public class Map : MonoBehaviour
     public GameObject wallCornerTile;
     public GameObject wallCornerBiTile;
     public GameObject wallCornerAllTile;
+    public GameObject wallEndAll;
     public GameObject doorClosedTile;
     public GameObject doorOpenTile;
     public GameObject floorArrowTile;
 
     // -------------------- MapRoom parameters ----------------------
     // minimum usable space in any room (no walls) --- so if it's 3, that means the smallest room space will be 3x3, with walls the final room will be 5x5
-    public static int minRoomUsableLength = 3;
+    public int minRoomUsableLength = 3;
     // how many wall tiles in a wall for a door tile to be placed
-    public static int wallsPerDoor = 3;
+    public int wallsPerDoor = 3;
     // minimum distance between doors
-    public static int doorMinDistance = 9;
+    public int doorMinDistance = 9;
     // chance when creating new corridor doors to make symmetric pairs
-    public static float doorSymmetryChance = 1f;
+    public float doorSymmetryChance = 1f;
 
     // the maximum room lengths for which the corridor will be of width (array index + 1)
     // Note: the length is reffering to the room which is being split, not the resulting one
@@ -44,13 +45,15 @@ public class Map : MonoBehaviour
     //      rooms of width 11-20 will have corridors of width 2
     //      rooms of width 21-30 will have corridors of width 3
     //      rooms of width 31+ will have corridors of width 4
-    public static int[] roomToCorridorLengths = { 20, 35, 50 };
+    public int[] roomToCorridorLengths = { 20, 35, 50 };
     // ---------------- End of MapRoom parameters ------------------
 
 
 
     // map will be tiled of type square
     public int mapSize = 64;
+    // room divisions
+    public int roomDivisions = 50;
     // the matrix
     private int[,] map = new int[258, 258];
     // Values:
@@ -76,21 +79,20 @@ public class Map : MonoBehaviour
         List<MapRoom> rooms = new List<MapRoom>();
         rooms.Add(new MapRoom(0, mapSize - 1, 0, mapSize - 1));
 
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < roomDivisions; i++)
         {
-            int maxArea = rooms.Max(a => a.GetRoomArea());
-            int index = -1;
-            for(int j = 0; j < rooms.Count; j++)
-                if (maxArea == rooms[j].GetRoomArea())
-                    index = j;
-
-            if (rooms[index].CanSplit())
+            rooms.Sort((r1, r2) => -r1.GetRoomArea().CompareTo(r2.GetRoomArea()));
+            for (int j = 0; j < rooms.Count; j++)
             {
-                MapRoom r = rooms[index];
-                rooms.RemoveAt(index);
-                List<MapRoom> newRooms = r.Split();
-                rooms.Add(newRooms[0]);
-                rooms.Add(newRooms[1]);
+                List <MapRoom> newRooms = rooms[j].Split();
+                if (newRooms != null)
+                {
+                    MapRoom oldRoom = rooms[j];
+                    rooms.RemoveAt(j);
+                    rooms.Add(newRooms[0]);
+                    rooms.Add(newRooms[1]);
+                    break;
+                }
             }
         }
 
@@ -98,6 +100,7 @@ public class Map : MonoBehaviour
         for (int i = 0; i < mapSize; i++)
             for (int j = 0; j < mapSize; j++)
                 map[i, j] = 0;
+
         // writing the rooms
         foreach (var r in rooms)
         {
@@ -280,6 +283,8 @@ public class Map : MonoBehaviour
                     return;
                 }
         }
+        // none matched, which means that the wall is between two doors, either straight or corner
+        Instantiate(wallEndAll, newPos, Quaternion.identity, transform);
     }
 
     private void adjustDoorTile(int i, int j, Vector3 newPos)
