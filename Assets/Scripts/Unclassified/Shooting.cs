@@ -8,16 +8,24 @@ public class Shooting : MonoBehaviour
 
     public bool isEnemy = true;
 
-    public float weaponDamage = 1f;
-    public float weaponDamageModifier = 1f; // for buffs/debuffs
+    public float baseDamage = 1f;
+    private float currentDamage;
+    public float damageModifier = 1f; // for buffs/debuffs
 
-    public float attackRate = 0.2f;
+    public float baseAttackRate = 1f;
+    private float currentAttackRate;
     public float attackRateModifier = 1f;  // for buffs/debuffs
 
-    public float projectileSpeed = 100f;
+    public float baseProjectileSpeed = 100f;
+    private float currentProjectileSpeed;
     public float projectileSpeedModifier = 1f; // for buffs/debuffs
 
+    public float baseEnergyCost = 5f;
+    private float currentEnergyCost;
+    public float energyCostModifier = 1f;
+
     private Rigidbody2D rb;
+    private Player player;
 
     public Animator animator;
     public AnimationClip shootAnim;
@@ -39,18 +47,26 @@ public class Shooting : MonoBehaviour
 
     private void Start()
     {
+        player = GetComponent<Player>();
         rb = GetComponent<Rigidbody2D>();
-        chargeDuration = attackRate * attackRateModifier * (1 - fireDurationPercent);
-        fireDuration = attackRate * attackRateModifier * fireDurationPercent;
+        // params
+        currentDamage = baseDamage * damageModifier;
+        currentAttackRate = baseAttackRate * attackRateModifier;
+        currentProjectileSpeed = baseProjectileSpeed * projectileSpeedModifier;
+        currentEnergyCost = baseEnergyCost * energyCostModifier;
+
+        // animation params
+        chargeDuration = currentAttackRate * (1 - fireDurationPercent);
+        fireDuration = currentAttackRate * fireDurationPercent;
     }
 
-    public void startShoot(Vector2 target)
+    public void StartShoot(Vector2 target)
     {
         this.target = target;
         shooting = true;
     }
 
-    public void stopShoot()
+    public void StopShoot()
     {
         shooting = false;
     }
@@ -94,29 +110,40 @@ public class Shooting : MonoBehaviour
                 //animator.speed = animationSpeed / cooldownDuration * 0.1f;
                 GameObject myShot = Instantiate(shot, transform.position, Quaternion.identity) as GameObject;
                 Projectile projectile = myShot.GetComponent<Projectile>();
-                projectile.setParams(target, weaponDamage * weaponDamageModifier, projectileSpeed * projectileSpeedModifier, isEnemy);
+                projectile.setParams(target, currentDamage * damageModifier, currentProjectileSpeed * projectileSpeedModifier, isEnemy);
+
+                // informing player that we shot so he can manage energy costs and other
+                player.TakeEnergyDamage(currentEnergyCost);
             }
         }
     }
 
-    public void setWeaponDamageModifier(float modifier)
+    public void SetWeaponDamageModifier(float modifier)
     {
-        weaponDamageModifier = modifier;
+        damageModifier = modifier;
+        currentDamage = baseDamage * damageModifier;
     }
 
-    public void setAttackRateModifier(float modifier)
+    public void SetAttackRateModifier(float modifier)
     {
         attackRateModifier = modifier;
-        chargeDuration = attackRate * attackRateModifier * (1 - fireDurationPercent);
-        fireDuration = attackRate * attackRateModifier * fireDurationPercent;
+        currentAttackRate = baseAttackRate * attackRateModifier;
+        chargeDuration = currentAttackRate * (1 - fireDurationPercent);
+        fireDuration = currentAttackRate * fireDurationPercent;
     }
 
-    public void setProjectileSpeedModifier(float modifier)
+    public void SetProjectileSpeedModifier(float modifier)
     {
         projectileSpeedModifier = modifier;
+        currentProjectileSpeed = baseProjectileSpeed * projectileSpeedModifier;
     }
 
-    public float getAttackRateModifier()
+    public void SetEnergyCostModifier(float modifier) {
+        energyCostModifier = modifier;
+        currentEnergyCost = baseEnergyCost * energyCostModifier;
+    }
+
+    public float GetAttackRateModifier()
     {
         return attackRateModifier;
     }

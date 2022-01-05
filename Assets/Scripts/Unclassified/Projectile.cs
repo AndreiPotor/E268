@@ -109,7 +109,7 @@ public class Projectile : MonoBehaviour
         if (hit.collider.gameObject.CompareTag("Player"))
         {
             shootSpark(hit, sparkNr);
-            hit.collider.gameObject.GetComponent<Player>().damage(damage);
+            hit.collider.gameObject.GetComponent<Player>().TakeDamage(damage);
             endProjectile(hit);
             return true;
         }

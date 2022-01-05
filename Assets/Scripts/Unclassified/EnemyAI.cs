@@ -101,7 +101,7 @@ public class EnemyAI : MonoBehaviour
                 target = lastSeenLocation;
             // shoot for player
             if (canShootPlayer)
-                shooting.startShoot(playerPos);
+                shooting.StartShoot(playerPos);
         }
         else // pick a random point and scout
         {
@@ -179,12 +179,6 @@ public class EnemyAI : MonoBehaviour
     {
         health -= damage * (1f - Mathf.Min(1f, damageResistance));
         if (health <= 0)
-        {
             Destroy(gameObject);
-            Player player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
-            float modif = player.getAttackRateModifier();
-            if(modif >= 0.15f)
-                player.setAttackRateModifier(modif * 0.8f);
-        }
     }
 }

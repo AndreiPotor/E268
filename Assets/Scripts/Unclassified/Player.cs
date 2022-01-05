@@ -7,35 +7,84 @@ public class Player : MonoBehaviour
     public ViewCone viewCone;
     public Shooting shooting;
 
-    public float speed = 50f;
+    // movement speed
+    public float baseSpeed = 50f;
+    private float currentSpeed;
     public float speedModifier = 1f; // for buffs/debuffs
 
-    public float health = 5f; // 0 == dead
+    // health of the robot - when it reaches zero it's game over
+    public float baseMaxHealth = 25f; // robot's default maximum health
     public float healthModifier = 1f; // for buffs/debuffs
-
+    private float maxHealth; // robot's maximum health after modifiers
+    private float currentHealth; // robot's current health
     public float damageResistance = 0f; // for buffs/debuffs (0 < damageResistance <= 1)
 
+    // energy is spent when moving
+    // for laser robots, it's also spent when firing the weapon
+    // also when it reaches zero it's game over
+    public float baseMaxEnergy = 1000f;
+    public float energyModifier = 1f;
+    private float maxEnergy;     // same concept as health
+    private float currentEnergy;
+    public float energyDamageResistance = 0f; // for buffs/debuffs (0 < damageResistance <= 1)
+    // energy management
+    public float baseEnergyIdleConsumption = 1f;
+    private float currentEnergyIdleConsumption; // energy lost per second passively
+    public float energyIdleConsumptionModifier = 1f;
+    public float energyMovingModifier = 2f; // energy lost per second while moving -> it is multiplied with <energyIdleConsumption>
+    private float lastEnergyTime; // for managing energy
+
+    // relevant gameObjects
     public Camera followingCamera;
     public Legs legsObject;
-
     private Rigidbody2D rb;
-
-    private Vector2 moveVelocity = Vector2.zero;
-    private Vector2 moveInput;
-    private Vector3 mousePos;
 
     void Start()
     {
+        // initializing stats
+        currentSpeed = baseSpeed * speedModifier;
+        maxHealth = baseMaxHealth * healthModifier;
+        maxEnergy = baseMaxEnergy * energyModifier;
+        currentHealth = maxHealth;
+        currentEnergy = maxEnergy;
+        currentEnergyIdleConsumption = baseEnergyIdleConsumption * energyIdleConsumptionModifier;
+        UI.setHealth(currentHealth, maxHealth);
+        UI.setEnergy(currentEnergy, maxEnergy);
+
         rb = GetComponent<Rigidbody2D>();
+    }
+
+    private void EnergyManagement(bool moving) {
+        // getting the time difference
+        float time = Time.time;
+        float timeDiff = time - lastEnergyTime;
+        lastEnergyTime = time;
+
+        // base formula + check if we are moving
+        float energyLoss = currentEnergyIdleConsumption * energyIdleConsumptionModifier;
+        if (moving)
+            energyLoss *= energyMovingModifier;
+
+        Debug.Log(energyLoss);
+
+        // applying the energy loss
+        currentEnergy -= energyLoss * timeDiff;
+        UI.setEnergy(currentEnergy, maxEnergy);
     }
 
     private void Update()
     {
         // getting inputs for moving
-        moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        Vector2 moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+
+        // processing movement
+        rb.AddForce(50f * currentSpeed * Time.deltaTime * moveInput.normalized);
+
+        // managing energy loss - parameter says if we're moving or not
+        EnergyManagement(moveInput.x != 0 || moveInput.y != 0);
 
         // Rotating the cannon following the mouse position
-        mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         float AngleRad = Mathf.Atan2(mousePos.y - transform.position.y, mousePos.x - transform.position.x);
         float AngleDeg = (180 / Mathf.PI) * AngleRad - 90f;
         Quaternion prevRotation = legsObject.transform.rotation;
@@ -48,10 +97,17 @@ public class Player : MonoBehaviour
         legsObject.setVelocity(rb.velocity);
 
         // sending commands to the shooting script
-        if (Input.GetMouseButton(0))
-            shooting.startShoot(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+        if (Input.GetMouseButton(0)) {
+            shooting.StartShoot(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+        }
         else
-            shooting.stopShoot();
+            shooting.StopShoot();
+
+        // testing
+        if (Input.GetKeyUp(KeyCode.Space)) {
+            TakeDamage(1);
+            SetEnergyMovingModifier(100f);
+        }
 
         // painting the player on the minimap
         UI.paintMinimap((int)Mathf.Round(transform.position.x), (int)Mathf.Round(transform.position.y), "Player");
@@ -60,72 +116,77 @@ public class Player : MonoBehaviour
         followingCamera.transform.position = new Vector3(rb.position.x, rb.position.y, followingCamera.transform.position.z);
     }
 
-    public Vector3 getMousePos()
+    public void TakeDamage(float damage)
     {
-        return mousePos;
-    }
-
-    private void FixedUpdate()
-    {
-        // processing movement
-        moveVelocity = moveInput.normalized * speed;
-        rb.AddForce(moveVelocity);
-    }
-
-    public void damage(float damage)
-    {
-        health -= damage * (1f - Mathf.Min(1f, damageResistance));
+        currentHealth -= damage * (1f - Mathf.Min(1f, damageResistance));
         // sending to UI
-        UI.setHealthText("Health:" + health.ToString());
+        UI.setHealth(currentHealth, maxHealth);
     }
 
-    public Vector2 getVelocity()
-    {
-        return moveVelocity;
+    public void TakeEnergyDamage(float damage) {
+        currentEnergy -= damage * (1f - Mathf.Min(1f, energyDamageResistance));
+        // sending to UI
+        UI.setEnergy(currentEnergy, maxEnergy);
     }
 
-    public void setSpeedModifier(float modifier)
+    public float AddHealth(float val) {
+        currentHealth += val;
+        if(currentHealth > maxHealth) {
+            float ret = currentHealth - maxHealth;
+            currentHealth = maxHealth;
+            return ret;
+        }
+        return 0;
+    }
+
+    public float AddEnergy(float val) {
+        currentEnergy += val;
+        if (currentEnergy > maxEnergy) {
+            float ret = currentEnergy - maxEnergy;
+            currentEnergy = maxEnergy;
+            return ret;
+        }
+        return 0;
+    }
+
+    public void SetSpeedModifier(float modifier)
     {
         speedModifier = modifier;
+        currentSpeed = baseSpeed * speedModifier;
     }
 
-    public void setWeaponDamageModifier(float modifier)
-    {
-        shooting.setWeaponDamageModifier(modifier);
+    public void SetEnergyModifier(float modifier) {
+        energyModifier = modifier;
+        maxEnergy = baseMaxEnergy * energyModifier;
+        if(currentEnergy > maxEnergy)
+            currentEnergy = maxEnergy;
+        UI.setEnergy(currentEnergy, maxEnergy);
     }
 
-    public void setAttackRateModifier(float modifier)
-    {
-        shooting.setAttackRateModifier(modifier);
-    }
-
-    public void setProjectileSpeedModifier(float modifier)
-    {
-        shooting.setProjectileSpeedModifier(modifier);
-    }
-
-    public void setHealthModifier(float modifier)
+    public void SetHealthModifier(float modifier)
     {
         healthModifier = modifier;
+        maxHealth = baseMaxHealth * healthModifier;
+        if(currentHealth > maxHealth)
+            currentHealth = maxHealth;
+        UI.setHealth(currentHealth, maxHealth);
     }
 
-    public void setDamageResistance(float modifier)
+    public void SetDamageResistance(float modifier)
     {
         damageResistance = modifier;
     }
 
-    public void setFrontalViewDistanceModifier(float modifier)
-    {
-        viewCone.setFrontalModifier(modifier);
+    public void SetEnergyDamageResistance(float modifier) {
+        energyDamageResistance = modifier;
     }
 
-    public void setSurroundViewDistanceModifier(float modifier)
-    {
-        viewCone.setSurroundModifier(modifier);
+    public void SetEnergyIdleConsumptionModifier(float modifier) {
+        energyIdleConsumptionModifier = modifier;
+        currentEnergyIdleConsumption = baseEnergyIdleConsumption * energyIdleConsumptionModifier;
     }
 
-    public float getAttackRateModifier()
-    {
-        return shooting.getAttackRateModifier();
+    public void SetEnergyMovingModifier(float modifier) {
+        energyMovingModifier = modifier;
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class UI : MonoBehaviour
@@ -13,18 +11,20 @@ public class UI : MonoBehaviour
     private static float alpha = 0.5f;
 
     // Health Text
-    private static Text health;
+    private static Text healthText;
+    private static RectTransform healthBar;
+    private static Text energyText;
+    private static RectTransform energyBar;
 
-    void Start()
+    void Awake()
     {
+        // setting up resource elements
+        healthText = transform.Find("HealthText").gameObject.GetComponent<Text>();
+        healthBar = transform.Find("HealthText").Find("HealthBar").gameObject.GetComponent<RectTransform>();
+        energyText = transform.Find("EnergyText").gameObject.GetComponent<Text>();
+        energyBar = transform.Find("EnergyText").Find("EnergyBar").gameObject.GetComponent<RectTransform>();
+        // setting up minimap
         setUpMinimap();
-
-        // setting up the health text
-        float canvasX = GameObject.Find("Canvas").GetComponent<RectTransform>().rect.width;
-        health = GetComponentInChildren<Text>();
-        health.gameObject.transform.localScale = new Vector3(0.001f * canvasX, 0.001f * canvasX, 1.0f);
-        health.color = Color.white;
-        health.text = "Health: " + GameObject.Find("Player").GetComponent<Player>().health;
     }
 
     public void setUpMinimap()
@@ -80,8 +80,14 @@ public class UI : MonoBehaviour
         }
     }
 
-    public static void setHealthText(string text)
+    public static void setHealth(float currentHealth, float maxHealth)
     {
-        health.text = text;
+        healthText.text = Mathf.RoundToInt(currentHealth) + "/" + Mathf.RoundToInt(maxHealth);
+        healthBar.localScale = new Vector3(currentHealth/ maxHealth, 1f, 1f);
+    }
+
+    public static void setEnergy(float currentEnergy, float maxEnergy) {
+        energyText.text = Mathf.RoundToInt(currentEnergy) + "/" + Mathf.RoundToInt(maxEnergy);
+        energyBar.localScale = new Vector3(currentEnergy / maxEnergy, 1f, 1f);
     }
 }

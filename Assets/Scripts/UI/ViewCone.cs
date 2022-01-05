@@ -54,7 +54,7 @@ public class ViewCone : MonoBehaviour
     {
         // getting data from player
         origin = player.transform.position;
-        setAimDirection(player.getMousePos() - origin);
+        setAimDirection(Camera.main.ScreenToWorldPoint(Input.mousePosition) - origin);
 
         vertices = new Vector3[2 * (frontalConeRayCount + surroundRayCount + 2) + 1000];
         uv = new Vector2[vertices.Length];
