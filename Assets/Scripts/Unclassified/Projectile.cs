@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
@@ -61,10 +59,11 @@ public class Projectile : MonoBehaviour
             Destroy(gameObject);
 
         // Casting a ray along the trajectory(of length up to the next position of the projectile)
-        RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, trajectoryNormalized, trajectoryMagnitude);
+        int mask = LayerMask.GetMask("Obstacle", "ObstacleNonAI");
+        RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, trajectoryNormalized, trajectoryMagnitude, mask);
         foreach (RaycastHit2D hit in hits)
         {
-            if (hit.collider != null && !hit.collider.CompareTag("Door"))
+            if (hit.collider != null)
             {
                 if (enemyProjectile)
                 {

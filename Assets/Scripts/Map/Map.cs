@@ -1,8 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using Pathfinding;
-using System.Linq;
 
 public class Map : MonoBehaviour
 {
@@ -55,7 +52,7 @@ public class Map : MonoBehaviour
     // room divisions
     public int roomDivisions = 50;
     // the matrix
-    private int[,] map = new int[258, 258];
+    private int[,] map = new int[256, 256];
     // Values:
     //      0 means floor
     //      1 means wall - could be normal or corner wall - we determine at the end
