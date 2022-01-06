@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public ViewCone viewCone;
     public Shooting shooting;
 
     // movement speed
@@ -64,8 +63,6 @@ public class Player : MonoBehaviour
         float energyLoss = currentEnergyIdleConsumption * energyIdleConsumptionModifier;
         if (moving)
             energyLoss *= energyMovingModifier;
-
-        Debug.Log(energyLoss);
 
         // applying the energy loss
         currentEnergy -= energyLoss * timeDiff;
